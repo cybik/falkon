@@ -148,6 +148,7 @@ set(SRCS ${SRCS}
     other/qzsettings.cpp
     other/siteinfo.cpp
     other/siteinfowidget.cpp
+    other/sitesettingsmanager.cpp
     other/statusbar.cpp
     other/updater.cpp
     other/useragentmanager.cpp
@@ -374,6 +375,7 @@ set(SRCS ${SRCS}
     other/qzsettings.h
     other/siteinfo.h
     other/siteinfowidget.h
+    other/sitesettingsmanager.h
     other/statusbar.h
     other/updater.h
     other/useragentmanager.h
