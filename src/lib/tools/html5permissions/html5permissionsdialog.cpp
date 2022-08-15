@@ -20,8 +20,10 @@
 #include "settings.h"
 #include "mainapplication.h"
 #include "html5permissionsmanager.h"
+#include "sitesettingsmanager.h"
 
 #include <QtWebEngineWidgetsVersion>
+#include <sqldatabase.h>
 
 
 HTML5PermissionsDialog::HTML5PermissionsDialog(QWidget* parent)
@@ -31,8 +33,6 @@ HTML5PermissionsDialog::HTML5PermissionsDialog(QWidget* parent)
     setAttribute(Qt::WA_DeleteOnClose);
 
     ui->setupUi(this);
-
-    loadSettings();
 
     ui->treeWidget->header()->resizeSection(0, 220);
 
@@ -50,27 +50,31 @@ HTML5PermissionsDialog::~HTML5PermissionsDialog()
 
 void HTML5PermissionsDialog::showFeaturePermissions(QWebEnginePage::Feature feature)
 {
-    if (!m_granted.contains(feature) || !m_denied.contains(feature)) {
-        return;
-    }
-
     ui->treeWidget->clear();
 
-    const auto grantedSites = m_granted.value(feature);
-    for (const QString &site : grantedSites) {
-        auto* item = new QTreeWidgetItem(ui->treeWidget);
-        item->setText(0, site);
-        item->setText(1, tr("Allow"));
-        item->setData(0, Qt::UserRole + 10, Allow);
-        ui->treeWidget->addTopLevelItem(item);
-    }
+    QString column = mApp->siteSettingsManager()->sqlColumnFromWebEngineFeature(feature);
+    QSqlQuery query(SqlDatabase::instance()->database());
+    query.prepare(QSL("SELECT id, server, %1 FROM site_settings WHERE %1 != ?").arg(column));
+    query.addBindValue(SiteSettingsManager::Default);
+    query.exec();
 
-    const auto deniedSites = m_denied.value(feature);
-    for (const QString &site : deniedSites) {
+    while (query.next()) {
+        int id = query.value(0).toInt();
+        if (m_removed.contains(feature) && m_removed[feature].contains(id)) {
+            continue;
+        }
+
         auto* item = new QTreeWidgetItem(ui->treeWidget);
-        item->setText(0, site);
-        item->setText(1, tr("Deny"));
-        item->setData(0, Qt::UserRole + 10, Deny);
+        item->setText(0, query.value(1).toString());
+
+        auto perm = static_cast<SiteSettingsManager::Permission>(query.value(2).toInt());
+        if (perm == SiteSettingsManager::Allow) {
+            item->setText(1, tr("Allow"));
+        }
+        else {
+            item->setText(1, tr("Deny"));
+        }
+        item->setData(0, Qt::UserRole + 10, id);
         ui->treeWidget->addTopLevelItem(item);
     }
 }
@@ -87,104 +91,54 @@ void HTML5PermissionsDialog::removeEntry()
         return;
     }
 
-    Role role = static_cast<Role>(item->data(0, Qt::UserRole + 10).toInt());
-    const QString origin = item->text(0);
-
-    if (role == Allow)
-        m_granted[currentFeature()].removeOne(origin);
-    else
-        m_denied[currentFeature()].removeOne(origin);
+    const int domainId = item->data(0, Qt::UserRole + 10).toInt();
+    m_removed[currentFeature()].append(domainId);
 
     delete item;
 }
 
 QWebEnginePage::Feature HTML5PermissionsDialog::currentFeature() const
 {
-    switch (ui->feature->currentIndex()) {
-    case 0:
-        return QWebEnginePage::Notifications;
-    case 1:
-        return QWebEnginePage::Geolocation;
-    case 2:
-        return QWebEnginePage::MediaAudioCapture;
-    case 3:
-        return QWebEnginePage::MediaVideoCapture;
-    case 4:
-        return QWebEnginePage::MediaAudioVideoCapture;
-    case 5:
-        return QWebEnginePage::MouseLock;
-    case 6:
-        return QWebEnginePage::DesktopVideoCapture;
-    case 7:
-        return QWebEnginePage::DesktopAudioVideoCapture;
-    default:
-        Q_UNREACHABLE();
-        return QWebEnginePage::Notifications;
-    }
+    return indexToFeature(ui->feature->currentIndex());
 }
 
-void HTML5PermissionsDialog::loadSettings()
+QWebEnginePage::Feature HTML5PermissionsDialog::indexToFeature(const int index) const
 {
-    Settings settings;
-    settings.beginGroup("HTML5Notifications");
-
-    m_granted[QWebEnginePage::Notifications] = settings.value("NotificationsGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::Notifications] = settings.value("NotificationsDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::Geolocation] = settings.value("GeolocationGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::Geolocation] = settings.value("GeolocationDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::MediaAudioCapture] = settings.value("MediaAudioCaptureGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::MediaAudioCapture] = settings.value("MediaAudioCaptureDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::MediaVideoCapture] = settings.value("MediaVideoCaptureGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::MediaVideoCapture] = settings.value("MediaVideoCaptureDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::MediaAudioVideoCapture] = settings.value("MediaAudioVideoCaptureGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::MediaAudioVideoCapture] = settings.value("MediaAudioVideoCaptureDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::MouseLock] = settings.value("MouseLockGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::MouseLock] = settings.value("MouseLockDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::DesktopVideoCapture] = settings.value("DesktopVideoCaptureGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::DesktopVideoCapture] = settings.value("DesktopVideoCaptureDenied", QStringList()).toStringList();
-
-    m_granted[QWebEnginePage::DesktopAudioVideoCapture] = settings.value("DesktopAudioVideoCaptureGranted", QStringList()).toStringList();
-    m_denied[QWebEnginePage::DesktopAudioVideoCapture] = settings.value("DesktopAudioVideoCaptureDenied", QStringList()).toStringList();
-
-    settings.endGroup();
+    switch (index) {
+        case 0:
+            return QWebEnginePage::Notifications;
+        case 1:
+            return QWebEnginePage::Geolocation;
+        case 2:
+            return QWebEnginePage::MediaAudioCapture;
+        case 3:
+            return QWebEnginePage::MediaVideoCapture;
+        case 4:
+            return QWebEnginePage::MediaAudioVideoCapture;
+        case 5:
+            return QWebEnginePage::MouseLock;
+        case 6:
+            return QWebEnginePage::DesktopVideoCapture;
+        case 7:
+            return QWebEnginePage::DesktopAudioVideoCapture;
+        default:
+            Q_UNREACHABLE();
+            return QWebEnginePage::Notifications;
+    }
 }
 
 void HTML5PermissionsDialog::saveSettings()
 {
-    Settings settings;
-    settings.beginGroup("HTML5Notifications");
+    QSqlQuery query(SqlDatabase::instance()->database());
 
-    settings.setValue("NotificationsGranted", m_granted[QWebEnginePage::Notifications]);
-    settings.setValue("NotificationsDenied", m_denied[QWebEnginePage::Notifications]);
+    for (int i = 0; i < 8; ++i) {
+        const QWebEnginePage::Feature feature = indexToFeature(i);
+        const QString column = mApp->siteSettingsManager()->sqlColumnFromWebEngineFeature(feature);
+        query.prepare(QSL("UPDATE site_settings SET %1 = 0 WHERE id = ?").arg(column));
+        query.addBindValue(m_removed[feature]);
 
-    settings.setValue("GeolocationGranted", m_granted[QWebEnginePage::Geolocation]);
-    settings.setValue("GeolocationDenied", m_denied[QWebEnginePage::Geolocation]);
-
-    settings.setValue("MediaAudioCaptureGranted", m_granted[QWebEnginePage::MediaAudioCapture]);
-    settings.setValue("MediaAudioCaptureDenied", m_denied[QWebEnginePage::MediaAudioCapture]);
-
-    settings.setValue("MediaVideoCaptureGranted", m_granted[QWebEnginePage::MediaVideoCapture]);
-    settings.setValue("MediaVideoCaptureDenied", m_denied[QWebEnginePage::MediaVideoCapture]);
-
-    settings.setValue("MediaAudioVideoCaptureGranted", m_granted[QWebEnginePage::MediaAudioVideoCapture]);
-    settings.setValue("MediaAudioVideoCaptureDenied", m_denied[QWebEnginePage::MediaAudioVideoCapture]);
-
-    settings.setValue("MouseLockGranted", m_granted[QWebEnginePage::MouseLock]);
-    settings.setValue("MouseLockDenied", m_denied[QWebEnginePage::MouseLock]);
-
-    settings.setValue("DesktopVideoCaptureGranted", m_granted[QWebEnginePage::DesktopVideoCapture]);
-    settings.setValue("DesktopVideoCaptureDenied", m_denied[QWebEnginePage::DesktopVideoCapture]);
-
-    settings.setValue("DesktopAudioVideoCaptureGranted", m_granted[QWebEnginePage::DesktopAudioVideoCapture]);
-    settings.setValue("DesktopAudioVideoCaptureDenied", m_denied[QWebEnginePage::DesktopAudioVideoCapture]);
-
-    settings.endGroup();
-
-//    mApp->html5PermissionsManager()->loadSettings();
+        if (!query.execBatch()) {
+            qDebug() << query.lastError();
+        }
+    }
 }
