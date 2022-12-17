@@ -59,6 +59,7 @@ SiteInfo::SiteInfo(WebView *view)
 
     ui->listWidget->item(0)->setIcon(QIcon::fromTheme("document-properties", QIcon(":/icons/preferences/document-properties.png")));
     ui->listWidget->item(1)->setIcon(QIcon::fromTheme("applications-graphics", QIcon(":/icons/preferences/applications-graphics.png")));
+    ui->listWidget->item(2)->setIcon(QIcon(QStringLiteral(":/icons/preferences/privacy.svg")));
     ui->listWidget->item(0)->setSelected(true);
 
     // General
