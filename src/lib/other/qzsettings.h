@@ -59,6 +59,8 @@ public:
     QStringList allowedSchemes;
     QStringList blockedSchemes;
 
+    int bookmarkKeyboardShortcutStyle;
+
     // Browser-Tabs-Settings
     Qz::NewTabPositionFlags newTabPosition;
     bool tabsOnTop;

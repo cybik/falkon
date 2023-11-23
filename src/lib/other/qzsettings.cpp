@@ -53,6 +53,7 @@ void QzSettings::loadSettings()
     blockedProtocols = settings.value(QSL("BlockOpeningProtocols"), QStringList()).toStringList();
     allowedSchemes = settings.value(QSL("AllowedSchemes"), QStringList()).toStringList();
     blockedSchemes = settings.value(QSL("BlockedSchemes"), QStringList()).toStringList();
+    bookmarkKeyboardShortcutStyle = settings.value(QSL("bookmarkKeyboardShortcutStyle"), 0).toInt();
     settings.endGroup();
 
     settings.beginGroup(QSL("Browser-Tabs-Settings"));

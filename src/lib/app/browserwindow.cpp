@@ -70,6 +70,7 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QWebEngineHistory>
+#include <QSettings>
 #include <QWebEngineSettings>
 #include <QMessageBox>
 #include <QToolTip>
@@ -477,6 +478,9 @@ void BrowserWindow::setupMenu()
 
     auto* inspectorAction = new QShortcut(QKeySequence(QSL("F12")), this);
     connect(inspectorAction, &QShortcut::activated, this, &BrowserWindow::toggleWebInspector);
+
+    auto* toggleBookmarks = new QShortcut(QKeySequence(QSL("Ctrl+Shift+B")), this);
+    connect(toggleBookmarks, &QShortcut::activated, this, &BrowserWindow::toggleBookmarks);
 
     auto* restoreClosedWindow = new QShortcut(QKeySequence(QSL("Ctrl+Shift+N")), this);
     connect(restoreClosedWindow, &QShortcut::activated, mApp->closedWindowsManager(), &ClosedWindowsManager::restoreClosedWindow);
@@ -962,6 +966,18 @@ void BrowserWindow::toggleWebInspector()
     if (weView() && weView()->webTab()) {
         weView()->webTab()->toggleWebInspector();
     }
+}
+
+void BrowserWindow::toggleBookmarks()
+{
+    // 0: sidebar, 1: toolbar
+    Settings::globalSettings()->beginGroup("Shortcuts");
+    if(Settings::globalSettings()->value("bookmarkKeyboardShortcutStyle", 0) == 0) {
+        sideBarManager()->showSideBar("Bookmarks", true);
+    } else {
+        toggleShowBookmarksToolbar();
+    }
+    Settings::globalSettings()->endGroup();
 }
 
 void BrowserWindow::currentTabChanged()

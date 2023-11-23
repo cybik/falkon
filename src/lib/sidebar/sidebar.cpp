@@ -107,7 +107,7 @@ void SideBarManager::createMenu(QMenu* menu)
 
     QAction* act = menu->addAction(SideBar::tr("Bookmarks"), this, &SideBarManager::slotShowSideBar);
     act->setCheckable(true);
-    act->setShortcut(QKeySequence(QSL("Ctrl+Shift+B")));
+    //act->setShortcut(QKeySequence(QSL("Ctrl+Shift+B")));
     act->setData(QSL("Bookmarks"));
     act->setChecked(m_activeBar == QL1S("Bookmarks"));
     group->addAction(act);

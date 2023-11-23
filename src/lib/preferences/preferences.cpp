@@ -394,6 +394,7 @@ Preferences::Preferences(BrowserWindow* window)
     ui->switchTabsAlt->setChecked(settings.value(QSL("useTabNumberShortcuts"), true).toBool());
     ui->loadSpeedDialsCtrl->setChecked(settings.value(QSL("useSpeedDialNumberShortcuts"), true).toBool());
     ui->singleKeyShortcuts->setChecked(settings.value(QSL("useSingleKeyShortcuts"), false).toBool());
+    ui->bookmarkKeyboardShortcutStyle->setCurrentIndex(settings.value(QSL("bookmarkKeyboardShortcutStyle"), 0).toInt());
     settings.endGroup();
 
     //NOTIFICATIONS
@@ -962,6 +963,7 @@ void Preferences::saveSettings()
     settings.setValue(QSL("useTabNumberShortcuts"), ui->switchTabsAlt->isChecked());
     settings.setValue(QSL("useSpeedDialNumberShortcuts"), ui->loadSpeedDialsCtrl->isChecked());
     settings.setValue(QSL("useSingleKeyShortcuts"), ui->singleKeyShortcuts->isChecked());
+    settings.setValue(QSL("bookmarkKeyboardShortcutStyle"), ui->bookmarkKeyboardShortcutStyle->currentIndex());
     settings.endGroup();
 
     //BROWSING
