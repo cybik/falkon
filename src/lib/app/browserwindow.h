@@ -148,6 +148,7 @@ public Q_SLOTS:
 
     void toggleShowMenubar();
     void toggleShowStatusBar();
+    void toggleBookmarks();
     void toggleShowBookmarksToolbar();
     void toggleShowNavigationToolbar();
     void toggleTabsOnTop(bool enable);
