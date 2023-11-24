@@ -149,6 +149,7 @@ public Q_SLOTS:
     void toggleShowMenubar();
     void toggleShowStatusBar();
     void toggleBookmarks();
+    void toggleBookmarksShift();
     void toggleShowBookmarksToolbar();
     void toggleShowNavigationToolbar();
     void toggleTabsOnTop(bool enable);
@@ -181,6 +182,7 @@ private Q_SLOTS:
     void hideNavigationSlot();
 
 private:
+    int getBookmarkKeyboardShortcutStyleSetting();
     bool event(QEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
