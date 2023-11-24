@@ -57,6 +57,9 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QColorDialog>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#include <QDesktopWidget>
+#endif
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
 #include <QLibraryInfo>
@@ -241,6 +244,7 @@ Preferences::Preferences(BrowserWindow* window)
     ui->askWhenClosingMultipleTabs->setChecked(settings.value(QSL("AskOnClosing"), false).toBool());
     ui->showClosedTabsButton->setChecked(settings.value(QSL("showClosedTabsButton"), false).toBool());
     ui->showCloseOnInactive->setCurrentIndex(settings.value(QSL("showCloseOnInactiveTabs"), 0).toInt());
+    ui->showFavicon->setChecked(settings.value(QSL("showFavicon"), false).toBool());
     settings.endGroup();
 
     //AddressBar
@@ -926,6 +930,7 @@ void Preferences::saveSettings()
     settings.setValue(QSL("AskOnClosing"), ui->askWhenClosingMultipleTabs->isChecked());
     settings.setValue(QSL("showClosedTabsButton"), ui->showClosedTabsButton->isChecked());
     settings.setValue(QSL("showCloseOnInactiveTabs"), ui->showCloseOnInactive->currentIndex());
+    settings.setValue(QSL("showFavicon"), ui->showFavicon->isChecked());
     settings.endGroup();
 
     //DOWNLOADS

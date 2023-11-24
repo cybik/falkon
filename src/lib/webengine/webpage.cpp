@@ -28,6 +28,7 @@
 #include "popupwebview.h"
 #include "popupwindow.h"
 #include "iconprovider.h"
+#include "settings.h"
 #include "qzsettings.h"
 #include "useragentmanager.h"
 #include "delayedfilewatcher.h"
@@ -55,6 +56,7 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QSettings>
 #include <QAuthenticator>
 #include <QPushButton>
 #include <QUrlQuery>
@@ -297,6 +299,14 @@ void WebPage::finished()
 
     // AutoFill
     m_autoFillUsernames = mApp->autoFill()->completePage(this, url());
+
+    // TODO: favicon
+    Settings::globalSettings()->beginGroup("Browser-Tabs-Settings");
+    if (!Settings::globalSettings()->value("showFavicon", false).toBool()) {
+        // Show favicon per user request
+        //this->webChannel()->
+    }
+    Settings::globalSettings()->endGroup();
 }
 
 void WebPage::watchedFileChanged(const QString &file)
