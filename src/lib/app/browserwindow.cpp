@@ -489,8 +489,11 @@ void BrowserWindow::setupMenu()
     auto* inspectorAction = new QShortcut(QKeySequence(QSL("F12")), this);
     connect(inspectorAction, &QShortcut::activated, this, &BrowserWindow::toggleWebInspector);
 
-    auto* toggleBookmarks = new QShortcut(QKeySequence(QSL("Ctrl+Shift+B")), this);
+    auto* toggleBookmarks = new QShortcut(QKeySequence(QSL("Ctrl+B")), this);
     connect(toggleBookmarks, &QShortcut::activated, this, &BrowserWindow::toggleBookmarks);
+
+    auto* toggleBookmarksShift = new QShortcut(QKeySequence(QSL("Ctrl+Shift+B")), this);
+    connect(toggleBookmarksShift, &QShortcut::activated, this, &BrowserWindow::toggleBookmarksShift);
 
     auto* restoreClosedWindow = new QShortcut(QKeySequence(QSL("Ctrl+Shift+N")), this);
     connect(restoreClosedWindow, &QShortcut::activated, mApp->closedWindowsManager(), &ClosedWindowsManager::restoreClosedWindow);
@@ -978,16 +981,38 @@ void BrowserWindow::toggleWebInspector()
     }
 }
 
+int BrowserWindow::getBookmarkKeyboardShortcutStyleSetting() {
+    Settings::globalSettings()->beginGroup("Shortcuts");
+    int ret = Settings::globalSettings()->value("bookmarkKeyboardShortcutStyle", 0).toInt();
+    Settings::globalSettings()->endGroup();
+    return ret;
+}
+
 void BrowserWindow::toggleBookmarks()
 {
-    // 0: sidebar, 1: toolbar
-    Settings::globalSettings()->beginGroup("Shortcuts");
-    if(Settings::globalSettings()->value("bookmarkKeyboardShortcutStyle", 0) == 0) {
-        sideBarManager()->showSideBar("Bookmarks", true);
-    } else {
-        toggleShowBookmarksToolbar();
+    switch(getBookmarkKeyboardShortcutStyleSetting()) {
+        case 1: // Firefox
+            sideBarManager()->showSideBar("Bookmarks", true);
+            break;
+        case 0: // Falkon
+        case 2: // Chromium
+        default:
+            break; // noop
     }
-    Settings::globalSettings()->endGroup();
+}
+
+void BrowserWindow::toggleBookmarksShift()
+{
+    switch(getBookmarkKeyboardShortcutStyleSetting()) {
+        case 1: // Firefox
+        case 2: // Chromium
+            toggleShowBookmarksToolbar();
+            break;
+        case 0: // Falkon
+        default:
+            sideBarManager()->showSideBar("Bookmarks", true);
+            break;
+    }
 }
 
 void BrowserWindow::currentTabChanged()

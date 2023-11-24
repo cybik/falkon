@@ -1788,7 +1788,12 @@
                </item>
                <item>
                 <property name="text">
-                 <string>Firefox/Chrome</string>
+                 <string>Firefox</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Chrome</string>
                 </property>
                </item>
               </widget>
