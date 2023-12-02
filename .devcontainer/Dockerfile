@@ -14,3 +14,4 @@ RUN dnf -y install  kf6-kcrash-devel kf6-kwallet-devel \
                     kf6-kjobwidgets-devel kf6-karchive-devel \
                     kf6-ki18n-devel
 RUN dnf -y install  kf6-kio-devel kf6-purpose-devel --allowerasing
+RUN dnf -y install  procps
