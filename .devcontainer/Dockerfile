@@ -1,10 +1,16 @@
-FROM invent-registry.kde.org/neon/docker-images/all:latest
+FROM fedora:rawhide
 
-USER root
+RUN dnf check-update
+RUN dnf install -y zsh util-linux git
 
-# BROKEN: KDE Neon images' dependency graph is in a bad state
-RUN apt install -y  qt6-base-dev qt6-webengine-dev qt6-5compat-dev qt6-declarative-dev
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended
 
-# BROKEN: KDE Neon images have KDE5 preinstalled and there's a huge clash
-RUN apt install -y  kf6-karchive-dev kf6-kwallet-dev kf6-kcrash-dev  \
-                    kf6-kcoreaddons-dev kf6-purpose-dev kf6-kjobwidgets-dev
+ENTRYPOINT [ "/bin/zsh" ]
+
+RUN dnf -y install  extra-cmake-modules libxcb-devel xcb-util-devel openssl-devel
+RUN dnf -y install  qt6-qtbase-devel qt6-qtwebengine-devel \
+                    qt6-qt5compat-devel qt6-qtdeclarative-devel
+RUN dnf -y install  kf6-kcrash-devel kf6-kio-devel \
+                    kf6-kjobwidgets-devel kf6-karchive-devel \
+                    kf6-kwallet-devel kf6-purpose-devel \
+                    kf6-ki18n-devel
