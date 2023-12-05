@@ -17,3 +17,6 @@ RUN dnf -y install  kf6-kio-devel kf6-purpose-devel --allowerasing
 RUN dnf -y install  procps qt6-qtbase-private-devel
 
 RUN chsh root -s /bin/zsh
+
+RUN dnf -y install openssh-server nano net-utils waypipe
+RUN ssh-keygen -A
